@@ -1,0 +1,12 @@
+resource_group_name     = ""
+location                = ""
+hostpool_name           = ""
+vm_count                = 1
+vm_name                 = ""
+vm_size                 = ""
+admin_username          = ""
+admin_password_keyvault = ""   
+key_vault_name          = ""
+key_vault_resource_group = ""
+vnet_name               = ""
+subnet_name             = ""

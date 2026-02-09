@@ -1,7 +1,7 @@
 resource_group_name     = ""
 location                = ""
 hostpool_name           = ""
-vm_count                = 1
+vm_count                = 5
 vm_name                 = ""
 vm_size                 = ""
 admin_username          = ""

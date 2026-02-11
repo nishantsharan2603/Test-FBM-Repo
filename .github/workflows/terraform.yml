@@ -1,4 +1,4 @@
-name: AVD Terraform Deploy
+name: AVD Terraform Production Deploy
 on:
  workflow_dispatch:
 permissions:
@@ -24,7 +24,6 @@ jobs:
    - name: Terraform Validate
      run: terraform validate
    - name: Terraform Plan
-     id: plan
      run: |
        terraform plan -out=tfplan -var-file="terraform.tfvars"
        terraform show -json tfplan > tfplan.json
@@ -42,5 +41,5 @@ jobs:
          echo "No destroy actions detected."
        fi
    - name: Terraform Apply
-     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+     if: github.ref == 'refs/heads/main'
      run: terraform apply -auto-approve tfplan

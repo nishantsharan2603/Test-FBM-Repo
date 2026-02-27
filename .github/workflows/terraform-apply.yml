@@ -14,6 +14,6 @@ jobs:
    steps:
    - uses: actions/checkout@v4
    - uses: hashicorp/setup-terraform@v3
-   - run: terraform init
+   - run: terraform init -backend-config="key=avd-fbmtest.tfstate"
    - name: Terraform Apply
      run: terraform apply -auto-approve -var-file="terraform.tfvars"

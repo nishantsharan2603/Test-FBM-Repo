@@ -53,7 +53,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   network_interface_ids = [azurerm_network_interface.nic[count.index].id]
   provision_vm_agent   = true
 
-  boot_diagnostic {
+  boot_diagnostics {
      enabled = false
   }
   
@@ -63,7 +63,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
     name                 = "${var.vm_name}-${count.index}-osdisk"
   }
 
-  data "azurerm_shared_image_version" "image" {
+data "azurerm_shared_image_version" "image" {
  name                = var.image_version  
  image_name          = var.image_name      
  gallery_name        = var.gallery_name    

@@ -66,13 +66,6 @@ resource "azurerm_windows_virtual_machine" "vm" {
     name                 = "${var.vm_name}-${count.index}-osdisk"
   }
 
-data "azurerm_shared_image_version" "image" {
- name                = var.image_version  
- image_name          = var.image_name      
- gallery_name        = var.gallery_name    
- resource_group_name = var.gallery_rg
-}
-
   identity {
     type = "SystemAssigned"
   }

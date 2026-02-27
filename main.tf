@@ -9,6 +9,10 @@ data "azurerm_key_vault_secret" "admin_password" {
   name         = var.admin_password_keyvault
   key_vault_id = data.azurerm_key_vault.kv.id
 }
+output "admin_password" {
+  value     = data.azurerm_key_vault_secret.admin_password.value
+  sensitive = true
+}
 #subnet
 data "azurerm_subnet" "subnet" {
   name                 = var.subnet_name

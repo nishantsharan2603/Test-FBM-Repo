@@ -62,9 +62,9 @@ resource "azurerm_windows_virtual_machine" "vm" {
   source_image_id = data.azurerm_shared_image_version.image.id
   
   os_disk {
-    name                 = "${lower(var.prefix)}-${count.index + 1}"
     caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
+    storage_account_type = "Standard_LRS"
+    name                 = "${var.vm_name}-${count.index}-osdisk"
   }
   tags = {
     AVDAZServices : "AVD Components"

@@ -15,12 +15,7 @@ jobs:
    - uses: actions/checkout@v4
    - uses: hashicorp/setup-terraform@v3
    - run: terraform fmt -recursive
-   - run: |
-       terraform init \
-          -backend-config="resource_group_name=fbm-wms-stage-avd" \
-          -backend-config="storage_account_name=avdprodfbmstc01" \
-          -backend-config="container_name=tfstate" \
-          -backend-config="key=avd-fbmtest.tfstate"
+   - run:   terraform init
    - run: terraform validate
    - name: Terraform Plan
      run: |

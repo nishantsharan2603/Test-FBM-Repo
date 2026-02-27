@@ -56,8 +56,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   provision_vm_agent   = true
 
   identity {
-        type = "UserAssigned"
-        identity_ids = [data.azurerm_user_assigned_identity.mgmtidentity.id]
+        type = "SystemAssigned"
       }
 
   source_image_id = data.azurerm_shared_image_version.image.id

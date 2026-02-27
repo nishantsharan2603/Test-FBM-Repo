@@ -1,5 +1,5 @@
 resource_group_name     = "fbm-wms-europe-avd"
-location                = "West Europe"
+location                = "Westeurope"
 hostpool_name           = "hp-test-desktop-weu"
 vm_count                = 1
 vm_name                 = "wzpfbmweust"

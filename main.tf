@@ -9,6 +9,13 @@ data "azurerm_key_vault_secret" "admin_password" {
   name         = var.admin_password_keyvault
   key_vault_id = data.azurerm_key_vault.kv.id
 }
+
+data "azurerm_shared_image_version" "image" {
+ name                = var.image_version  
+ image_name          = var.image_name      
+ gallery_name        = var.gallery_name    
+ resource_group_name = var.gallery_rg
+}
 #subnet
 data "azurerm_subnet" "subnet" {
   name                 = var.subnet_name
@@ -48,22 +55,29 @@ resource "azurerm_windows_virtual_machine" "vm" {
   network_interface_ids = [azurerm_network_interface.nic[count.index].id]
   provision_vm_agent   = true
 
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-    name                 = "${var.vm_name}-${count.index}-osdisk"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsDesktop"
-    offer     = "windows-11"
-    sku       = "win11-22h2-avd"
-    version   = "latest"
-  }
-
   identity {
-    type = "SystemAssigned"
+        type = "UserAssigned"
+        identity_ids = [data.azurerm_user_assigned_identity.mgmtidentity.id]
+      }
+
+  source_image_id = data.azurerm_shared_image_version.image.id
+  
+  os_disk {
+    name                 = "${lower(var.prefix)}-${count.index + 1}"
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
   }
+  tags = {
+    AVDAZServices : "AVD Components"
+    AVDInfra : "Virtual Machine"
+    excludeFromScaling : "excludeFromScaling"
+  }
+  zone = "${(count.index%3)+1}"
+
+  depends_on = [
+    data.azurerm_resource_group.rg,
+    azurerm_network_interface.avd_vm_nic
+  ]
 }
 
 # VM Extension for AAD login

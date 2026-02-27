@@ -1,4 +1,4 @@
-name: AVD FBM Terraform Plan
+name: AVD Terraform Plan
 on:
  workflow_dispatch:
 permissions:

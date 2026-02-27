@@ -14,8 +14,8 @@ jobs:
    steps:
    - uses: actions/checkout@v4
    - uses: hashicorp/setup-terraform@v3
-   - run: terraform fmt -check -recursive
-   - run: terraform init 
+   - run: terraform fmt -recursive
+   - run: terraform init -backend-config="key=avd-fbmtest.tfstate"
    - run: terraform validate
    - name: Terraform Plan
      run: |

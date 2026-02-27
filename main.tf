@@ -13,6 +13,12 @@ output "admin_password" {
   value     = data.azurerm_key_vault_secret.admin_password.value
   sensitive = true
 }
+data "azurerm_shared_image_version" "image" {
+ name                = var.image_version  
+ image_name          = var.image_name      
+ gallery_name        = var.gallery_name    
+ resource_group_name = var.gallery_rg
+}
 #subnet
 data "azurerm_subnet" "subnet" {
   name                 = var.subnet_name
@@ -52,9 +58,6 @@ resource "azurerm_windows_virtual_machine" "vm" {
   admin_password      = data.azurerm_key_vault_secret.admin_password.value
   network_interface_ids = [azurerm_network_interface.nic[count.index].id]
   provision_vm_agent   = true
-
-  boot_diagnostics {
-     enabled = false
   }
   
   os_disk {

@@ -10,3 +10,7 @@ variable "key_vault_name" {}
 variable "key_vault_resource_group" {}
 variable "vnet_name" {}
 variable "subnet_name" {}
+variable "image_version" {}
+variable "image_name" {}
+variable "gallery_name" {}
+variable "gallery_rg" {}

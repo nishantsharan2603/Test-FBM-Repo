@@ -71,12 +71,6 @@ resource "azurerm_windows_virtual_machine" "vm" {
     AVDInfra : "Virtual Machine"
     excludeFromScaling : "excludeFromScaling"
   }
-  zone = "${(count.index%3)+1}"
-
-  depends_on = [
-    data.azurerm_resource_group.rg,
-    azurerm_network_interface.avd_vm_nic
-  ]
 }
 
 # VM Extension for AAD login

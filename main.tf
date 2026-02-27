@@ -9,16 +9,6 @@ data "azurerm_key_vault_secret" "admin_password" {
   name         = var.admin_password_keyvault
   key_vault_id = data.azurerm_key_vault.kv.id
 }
-output "admin_password" {
-  value     = data.azurerm_key_vault_secret.admin_password.value
-  sensitive = true
-}
-data "azurerm_shared_image_version" "image" {
- name                = var.image_version  
- image_name          = var.image_name      
- gallery_name        = var.gallery_name    
- resource_group_name = var.gallery_rg
-}
 #subnet
 data "azurerm_subnet" "subnet" {
   name                 = var.subnet_name
@@ -53,17 +43,22 @@ resource "azurerm_windows_virtual_machine" "vm" {
   resource_group_name = var.resource_group_name
   location            = var.location
   size                = var.vm_size
-  zone                = (count.index % 3) + 1
   admin_username      = var.admin_username
   admin_password      = data.azurerm_key_vault_secret.admin_password.value
   network_interface_ids = [azurerm_network_interface.nic[count.index].id]
   provision_vm_agent   = true
-  }
-  
+
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
+    storage_account_type = "Standard_LRS"
     name                 = "${var.vm_name}-${count.index}-osdisk"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsDesktop"
+    offer     = "windows-11"
+    sku       = "win11-22h2-avd"
+    version   = "latest"
   }
 
   identity {

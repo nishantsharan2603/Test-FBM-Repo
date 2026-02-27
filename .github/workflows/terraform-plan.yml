@@ -20,8 +20,9 @@ jobs:
    - name: Terraform Plan
      run: |
        terraform plan -out=tfplan -var-file="terraform.tfvars"
-       terraform show tfplan
+       terraform show tfplan > tfplan.txt
    - uses: actions/upload-artifact@v4
      with:
        name: terraform-plan
        path: tfplan
+             tfplan.txt

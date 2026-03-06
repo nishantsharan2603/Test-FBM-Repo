@@ -31,16 +31,13 @@ jobs:
      run: |
        terraform plan -out=tfplan -var-file="terraform.tfvars"
        terraform show tfplan > tfplan.txt
-   - uses: actions/upload-artifact@v4
+   - name: Upload Plan Log as Artifact
+     uses: actions/upload-artifact@v4
      with:
-       - name: Upload Plan Log as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan-log
-          path: terraform_plan.log
- 
-       - name: Upload Terraform Plan File as Artifact
-         uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan
-          path: tfplan
+       name: terraform-plan-log
+       path: tfplan.txt
+   - name: Upload Terraform Plan File as Artifact
+     uses: actions/upload-artifact@v4
+     with:
+       name: terraform-plan
+       path: tfplan

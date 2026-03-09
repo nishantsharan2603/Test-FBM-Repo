@@ -141,7 +141,7 @@ resource "azurerm_virtual_machine_extension" "intune_enroll" {
  type                 = "CustomScriptExtension"
  type_handler_version = "1.10"
  settings = jsonencode({
-   commandToExecute = "powershell -ExecutionPolicy Unrestricted -Command \"do { $status = dsregcmd /status; Start-Sleep 10 } until ($status -match 'AzureAdJoined\\s*:\\s*YES'); Start-Process 'C:\\Windows\\System32\\DeviceEnroller.exe' -ArgumentList '/c /AutoEnrollMDM'\""
+   commandToExecute = "powershell -ExecutionPolicy Unrestricted -Command \"do { $status = dsregcmd /status; Start-Sleep 10 } until ($status -match 'AzureAdJoined\\s*:\\s*YES'); Start-Process 'C:\\Windows\\System32\\DeviceEnroller.exe' -ArgumentList '/c /EnrollMDM'\""
  })
  depends_on = [
    azurerm_virtual_machine_extension.avd_registration

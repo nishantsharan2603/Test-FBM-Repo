@@ -152,6 +152,3 @@ SETTINGS
     azurerm_virtual_machine_extension.avd_registration
   ]
 }
-    azurerm_virtual_machine_extension.avd_registration
-  ]
-}

@@ -132,3 +132,18 @@ resource "azurerm_virtual_machine_extension" "avd_registration" {
     azurerm_virtual_desktop_host_pool_registration_info.registration
   ]
 }
+#intuneenroll
+resource "azurerm_virtual_machine_extension" "intune_enroll" {
+ count                = var.vm_count
+ name                 = "IntuneEnrollment-${count.index}"
+ virtual_machine_id   = azurerm_windows_virtual_machine.vm[count.index].id
+ publisher            = "Microsoft.Compute"
+ type                 = "CustomScriptExtension"
+ type_handler_version = "1.10"
+ settings = jsonencode({
+   commandToExecute = "powershell -ExecutionPolicy Unrestricted -Command \"do { $status = dsregcmd /status; Start-Sleep 10 } until ($status -match 'AzureAdJoined\\s*:\\s*YES'); Start-Process 'C:\\Windows\\System32\\DeviceEnroller.exe' -ArgumentList '/c /AutoEnrollMDM'\""
+ })
+ depends_on = [
+   azurerm_virtual_machine_extension.avd_registration
+ ]
+}

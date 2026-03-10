@@ -14,3 +14,4 @@ variable "image_version" {}
 variable "image_name" {}
 variable "gallery_name" {}
 variable "gallery_rg" {}
+variable "dsc_module_url" {}

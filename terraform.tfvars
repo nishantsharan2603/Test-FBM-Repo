@@ -1,8 +1,8 @@
 resource_group_name     = "fbm-wms-europe-avd"
 location                = "Westeurope"
 hostpool_name           = "hp-test-desktop-weu"
-vm_count                = 1
-vm_name                 = "wzpfbmweut"
+vm_count                = 6
+vm_name                 = "azpfbmweut"
 vm_size                 = "Standard_E4ds_v5"
 admin_username          = "avdadministrator"
 admin_password_keyvault = "avdadministrator"   
@@ -14,3 +14,4 @@ image_version           = "16.02.2026"
 image_name              = "azure_windows_11_baseos_avd_24h2_gen2"
 gallery_name            = "acgazweuavdfbmprod01"
 gallery_rg              = "fbm-wms-stage-avd"
+dsc_module_url          = "https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip"

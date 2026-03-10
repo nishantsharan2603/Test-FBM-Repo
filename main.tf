@@ -75,15 +75,22 @@ resource "azurerm_windows_virtual_machine" "vm" {
   }
 }
 
-# -------------------------------------------------------
+# =======================================================
 # CHANGE 1: AAD Login Extension
-#   - type_handler_version: "1.0" -> "2.0"
-#   - Added auto_upgrade_minor_version = true
-#   - Added settings block with mdmId for Intune auto-enrollment
-#     mdmId "0000000a-0000-0000-c000-000000000000" is Microsoft Intune's
-#     fixed, well-known App ID (same across all tenants).
-#     Without this, AAD join happens but Intune enrollment is skipped.
-# -------------------------------------------------------
+#   ORIGINAL: type_handler_version       = "1.0"
+#             no auto_upgrade_minor_version
+#             no settings block
+#
+#   UPDATED:  type_handler_version       = "2.0"
+#             auto_upgrade_minor_version = true
+#             settings { mdmId = "0000000a-0000-0000-c000-000000000000" }
+#
+#   WHY: mdmId is Microsoft Intune's fixed well-known App ID
+#        (same across all tenants globally). Without this,
+#        VM joins AAD but Intune enrollment never triggers.
+#        The DeviceEnroller.exe workaround in the original
+#        was compensating for this missing setting.
+# =======================================================
 resource "azurerm_virtual_machine_extension" "aad_login" {
   count                      = var.vm_count
   name                       = "AADLoginForWindows-${count.index}"
@@ -98,19 +105,23 @@ resource "azurerm_virtual_machine_extension" "aad_login" {
   })
 }
 
-# -------------------------------------------------------
-# CHANGE 2: Registration token lifecycle
-#   - Removed ignore_changes on expiration_date
-#   - With ignore_changes, token would go stale on re-runs
-#     (e.g. your monthly AVD recreation cycles) and new VMs
-#     would fail to register to the host pool.
-# -------------------------------------------------------
+# =======================================================
+# CHANGE 2: Registration Token - lifecycle block removed
+#   ORIGINAL: lifecycle { ignore_changes = [expiration_date] }
+#
+#   UPDATED:  lifecycle block removed entirely
+#
+#   WHY: ignore_changes causes the token to go stale on
+#        re-runs. During monthly AVD recreation cycles,
+#        new VMs would fail host pool registration because
+#        Terraform reuses the old expired token.
+# =======================================================
 resource "azurerm_virtual_desktop_host_pool_registration_info" "registration" {
   hostpool_id     = data.azurerm_virtual_desktop_host_pool.existing.id
   expiration_date = timeadd(timestamp(), "24h")
 }
 
-#Outputs
+# Outputs
 output "session_host_names" {
   value = [for vm in azurerm_windows_virtual_machine.vm : vm.name]
 }
@@ -120,13 +131,38 @@ output "registration_token" {
   sensitive = true
 }
 
-# -------------------------------------------------------
-# CHANGE 3: DSC modulesUrl
-#   - Replaced hardcoded versioned URL with the versionless
-#     pointer maintained by Microsoft. The old versioned URL
-#     (Configuration_1.0.02714.342.zip) can be deprecated
-#     anytime, breaking new deployments silently.
-# -------------------------------------------------------
+# =======================================================
+# CHANGE 3a: New variable for pinned DSC module URL
+#   ORIGINAL: URL hardcoded inline as versioned zip
+#             "Configuration_1.0.02714.342.zip"
+#
+#   UPDATED:  Extracted to variable, pointing to a newer
+#             known-good pinned version
+#             "Configuration_1.0.02797.438.zip"
+#
+#   WHY: Pinning via variable gives one place to update
+#        when Microsoft releases a new version. Safer than
+#        versionless URL which can change schema silently.
+# =======================================================
+variable "dsc_module_url" {
+  description = "Pinned DSC module URL for AVD session host registration"
+  default     = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_1.0.02797.438.zip"
+}
+
+# =======================================================
+# CHANGE 3b: AVD DSC Registration Extension
+#   ORIGINAL: modulesUrl = hardcoded versioned URL (inline)
+#             properties { aadJoin = true }   <- lowercase a
+#
+#   UPDATED:  modulesUrl = var.dsc_module_url
+#             properties { AadJoin = true }   <- capital A
+#
+#   WHY (AadJoin): Newer DSC Configuration.zip renamed the
+#        parameter from aadJoin to AadJoin. DSC is case-
+#        sensitive — old casing throws error:
+#        "A parameter cannot be found that matches parameter
+#        name 'aadJoin'"
+# =======================================================
 resource "azurerm_virtual_machine_extension" "avd_registration" {
   count                      = var.vm_count
   name                       = "AVDRegistration-${count.index}"
@@ -137,11 +173,11 @@ resource "azurerm_virtual_machine_extension" "avd_registration" {
   auto_upgrade_minor_version = true
 
   settings = jsonencode({
-    modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration.zip",
+    modulesUrl            = var.dsc_module_url,
     configurationFunction = "Configuration.ps1\\AddSessionHost",
     properties = {
       hostPoolName = data.azurerm_virtual_desktop_host_pool.existing.name,
-      aadJoin      = true
+      AadJoin      = true
     }
   })
 
@@ -157,13 +193,21 @@ resource "azurerm_virtual_machine_extension" "avd_registration" {
   ]
 }
 
-# -------------------------------------------------------
-# CHANGE 4: Intune enrollment CustomScript extension - REMOVED
-#   - The DeviceEnroller.exe busy-wait loop was a workaround
-#     for the missing mdmId in the AAD extension (Change 1).
-#   - Now that mdmId is set, enrollment is automatic and this
-#     extension is no longer needed.
-#   - Also had risks: silent timeout if AAD join took too long,
-#     no retry limit on the while loop.
-# -------------------------------------------------------
-# (intune_enrollment extension block deleted)
+# =======================================================
+# CHANGE 4: Intune Enrollment CustomScript Extension - REMOVED
+#   ORIGINAL: azurerm_virtual_machine_extension "intune_enrollment"
+#             publisher = "Microsoft.Compute"
+#             type      = "CustomScriptExtension"
+#             Ran DeviceEnroller.exe inside a while loop
+#             polling dsregcmd /status with no retry limit
+#
+#   UPDATED:  Entire block deleted
+#
+#   WHY: Was a workaround for the missing mdmId in the AAD
+#        extension (fixed in Change 1). Removed because:
+#        - No retry cap -> silent timeout if AAD join slow
+#        - DeviceEnroller.exe not reliable across all builds
+#        - Adds unnecessary extension execution time
+#        With mdmId set, enrollment is native and automatic.
+# =======================================================
+# (intune_enrollment block deleted)

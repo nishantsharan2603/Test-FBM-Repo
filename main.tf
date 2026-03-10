@@ -85,11 +85,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
 #             auto_upgrade_minor_version = true
 #             settings { mdmId = "0000000a-0000-0000-c000-000000000000" }
 #
-#   WHY: mdmId is Microsoft Intune's fixed well-known App ID
-#        (same across all tenants globally). Without this,
-#        VM joins AAD but Intune enrollment never triggers.
-#        The DeviceEnroller.exe workaround in the original
-#        was compensating for this missing setting.
+#   mdmId is Microsoft Intune's fixed well-known App ID
 # =======================================================
 resource "azurerm_virtual_machine_extension" "aad_login" {
   count                      = var.vm_count
@@ -110,11 +106,7 @@ resource "azurerm_virtual_machine_extension" "aad_login" {
 #   ORIGINAL: lifecycle { ignore_changes = [expiration_date] }
 #
 #   UPDATED:  lifecycle block removed entirely
-#
-#   WHY: ignore_changes causes the token to go stale on
-#        re-runs. During monthly AVD recreation cycles,
-#        new VMs would fail host pool registration because
-#        Terraform reuses the old expired token.
+#During monthly AVD recreation cycles,new VMs would fail host pool registration because Terraform reuses the old expired token.
 # =======================================================
 resource "azurerm_virtual_desktop_host_pool_registration_info" "registration" {
   hostpool_id     = data.azurerm_virtual_desktop_host_pool.existing.id
@@ -191,22 +183,3 @@ resource "azurerm_virtual_machine_extension" "avd_registration" {
     azurerm_virtual_desktop_host_pool_registration_info.registration
   ]
 }
-
-# =======================================================
-# CHANGE 4: Intune Enrollment CustomScript Extension - REMOVED
-#   ORIGINAL: azurerm_virtual_machine_extension "intune_enrollment"
-#             publisher = "Microsoft.Compute"
-#             type      = "CustomScriptExtension"
-#             Ran DeviceEnroller.exe inside a while loop
-#             polling dsregcmd /status with no retry limit
-#
-#   UPDATED:  Entire block deleted
-#
-#   WHY: Was a workaround for the missing mdmId in the AAD
-#        extension (fixed in Change 1). Removed because:
-#        - No retry cap -> silent timeout if AAD join slow
-#        - DeviceEnroller.exe not reliable across all builds
-#        - Adds unnecessary extension execution time
-#        With mdmId set, enrollment is native and automatic.
-# =======================================================
-# (intune_enrollment block deleted)

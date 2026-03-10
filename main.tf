@@ -133,22 +133,16 @@ resource "azurerm_virtual_machine_extension" "avd_registration" {
   ]
 }
 #intuneenroll
-resource "azurerm_virtual_machine_extension" "intune_enroll" {
-  count                = var.vm_count
-  name                 = "IntuneEnrollment-${count.index}"
-  virtual_machine_id   = azurerm_windows_virtual_machine.vm[count.index].id
-  publisher            = "Microsoft.Compute"
-  type                 = "CustomScriptExtension"
-  type_handler_version = "1.10"
-
-  settings = <<SETTINGS
-{
- "commandToExecute": "powershell -ExecutionPolicy Bypass -Command \"Write-Host 'Triggering Azure AD Join...'; dsregcmd /join; Write-Host 'Waiting for Azure AD Join...'; do { $status = dsregcmd /status | Out-String; Start-Sleep -Seconds 10 } until ($status -match 'AzureAdJoined\\\\s*:\\\\s*YES'); Write-Host 'Azure AD Join successful. Starting Intune enrollment...'; Start-Process 'C:\\\\Windows\\\\System32\\\\dsregcmd.exe' -ArgumentList '/refreshprt' -Wait; Start-Process 'C:\\\\Windows\\\\System32\\\\DeviceEnroller.exe' -ArgumentList '/c /AutoEnrollMDM' -Wait; Write-Host 'Intune enrollment command executed.'\""
-}
-SETTINGS
-
-  depends_on = [
-    azurerm_virtual_machine_extension.aad_login,
-    azurerm_virtual_machine_extension.avd_registration
-  ]
+resource "azurerm_virtual_machine_extension" "intune_enrollment" {
+ name                 = "Enable-IntuneEnrollment"
+ virtual_machine_id   = azurerm_windows_virtual_machine.vm.id
+ publisher            = "Microsoft.Compute"
+ type                 = "CustomScriptExtension"
+ type_handler_version = "1.10"
+ settings = jsonencode({
+   commandToExecute = "powershell -ExecutionPolicy Bypass -Command \"$joined=$false; while(-not $joined){$s=dsregcmd /status; if($s -match 'AzureAdJoined : YES'){ $joined=$true } else { Start-Sleep -Seconds 30 }}; Start-Process 'C:\\Windows\\System32\\DeviceEnroller.exe' -ArgumentList '/c /AutoEnrollMDM' -Wait\""
+ })
+ depends_on = [
+   azurerm_virtual_machine_extension.avd_dsc
+ ]
 }

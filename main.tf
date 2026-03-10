@@ -134,8 +134,9 @@ resource "azurerm_virtual_machine_extension" "avd_registration" {
 }
 #intuneenroll
 resource "azurerm_virtual_machine_extension" "intune_enrollment" {
- name                 = "Enable-IntuneEnrollment"
- virtual_machine_id   = azurerm_windows_virtual_machine.vm.id
+ count                = var.vm_count
+ name                 = "Enable-IntuneEnrollment-${count.index}"
+ virtual_machine_id   = azurerm_windows_virtual_machine.vm[count.index].id
  publisher            = "Microsoft.Compute"
  type                 = "CustomScriptExtension"
  type_handler_version = "1.10"
@@ -143,6 +144,6 @@ resource "azurerm_virtual_machine_extension" "intune_enrollment" {
    commandToExecute = "powershell -ExecutionPolicy Bypass -Command \"$joined=$false; while(-not $joined){$s=dsregcmd /status; if($s -match 'AzureAdJoined : YES'){ $joined=$true } else { Start-Sleep -Seconds 30 }}; Start-Process 'C:\\Windows\\System32\\DeviceEnroller.exe' -ArgumentList '/c /AutoEnrollMDM' -Wait\""
  })
  depends_on = [
-   azurerm_virtual_machine_extension.avd_dsc
+   azurerm_virtual_machine_extension.avd_registration
  ]
 }

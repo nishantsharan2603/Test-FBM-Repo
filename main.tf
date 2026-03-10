@@ -145,8 +145,7 @@ output "registration_token" {
 #        versionless URL which can change schema silently.
 # =======================================================
 variable "dsc_module_url" {
-  description = "Pinned DSC module URL for AVD session host registration"
-  default     = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_1.0.02797.438.zip"
+  default = "https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip"
 }
 
 # =======================================================

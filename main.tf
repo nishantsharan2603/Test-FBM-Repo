@@ -136,10 +136,6 @@ output "registration_token" {
 #        when Microsoft releases a new version. Safer than
 #        versionless URL which can change schema silently.
 # =======================================================
-variable "dsc_module_url" {
-  default = "https://raw.githubusercontent.com/Azure/RDS-Templates/master/ARM-wvd-templates/DSC/Configuration.zip"
-}
-
 # =======================================================
 # CHANGE 3b: AVD DSC Registration Extension
 #   ORIGINAL: modulesUrl = hardcoded versioned URL (inline)

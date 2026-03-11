@@ -1,8 +1,8 @@
 resource_group_name     = "fbm-wms-europe-avd"
 location                = "Westeurope"
 hostpool_name           = "hp-test-desktop-weu"
-vm_count                = 6
-vm_name                 = "azpfbmweut"
+vm_count                = 3
+vm_name                 = "azpfbmweuts"
 vm_size                 = "Standard_E4ds_v5"
 admin_username          = "avdadministrator"
 admin_password_keyvault = "avdadministrator"   

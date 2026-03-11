@@ -51,6 +51,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   resource_group_name   = var.resource_group_name
   location              = var.location
   size                  = var.vm_size
+  zone                  = tostring (( count.index % 3) + 1)
   admin_username        = var.admin_username
   admin_password        = data.azurerm_key_vault_secret.admin_password.value
   network_interface_ids = [azurerm_network_interface.nic[count.index].id]

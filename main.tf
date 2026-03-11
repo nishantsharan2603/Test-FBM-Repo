@@ -75,18 +75,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
   }
 }
 
-# =======================================================
-# CHANGE 1: AAD Login Extension
-#   ORIGINAL: type_handler_version       = "1.0"
-#             no auto_upgrade_minor_version
-#             no settings block
-#
-#   UPDATED:  type_handler_version       = "2.0"
-#             auto_upgrade_minor_version = true
-#             settings { mdmId = "0000000a-0000-0000-c000-000000000000" }
-#
-#   mdmId is Microsoft Intune's fixed well-known App ID
-# =======================================================
+#aadlogin
 resource "azurerm_virtual_machine_extension" "aad_login" {
   count                      = var.vm_count
   name                       = "AADLoginForWindows-${count.index}"
@@ -101,13 +90,6 @@ resource "azurerm_virtual_machine_extension" "aad_login" {
   })
 }
 
-# =======================================================
-# CHANGE 2: Registration Token - lifecycle block removed
-#   ORIGINAL: lifecycle { ignore_changes = [expiration_date] }
-#
-#   UPDATED:  lifecycle block removed entirely
-#During monthly AVD recreation cycles,new VMs would fail host pool registration because Terraform reuses the old expired token.
-# =======================================================
 resource "azurerm_virtual_desktop_host_pool_registration_info" "registration" {
   hostpool_id     = data.azurerm_virtual_desktop_host_pool.existing.id
   expiration_date = timeadd(timestamp(), "24h")
@@ -123,33 +105,7 @@ output "registration_token" {
   sensitive = true
 }
 
-# =======================================================
-# CHANGE 3a: New variable for pinned DSC module URL
-#   ORIGINAL: URL hardcoded inline as versioned zip
-#             "Configuration_1.0.02714.342.zip"
-#
-#   UPDATED:  Extracted to variable, pointing to a newer
-#             known-good pinned version
-#             "Configuration_1.0.02797.438.zip"
-#
-#   WHY: Pinning via variable gives one place to update
-#        when Microsoft releases a new version. Safer than
-#        versionless URL which can change schema silently.
-# =======================================================
-# =======================================================
-# CHANGE 3b: AVD DSC Registration Extension
-#   ORIGINAL: modulesUrl = hardcoded versioned URL (inline)
-#             properties { aadJoin = true }   <- lowercase a
-#
-#   UPDATED:  modulesUrl = var.dsc_module_url
-#             properties { AadJoin = true }   <- capital A
-#
-#   WHY (AadJoin): Newer DSC Configuration.zip renamed the
-#        parameter from aadJoin to AadJoin. DSC is case-
-#        sensitive — old casing throws error:
-#        "A parameter cannot be found that matches parameter
-#        name 'aadJoin'"
-# =======================================================
+#dsc
 resource "azurerm_virtual_machine_extension" "avd_registration" {
   count                      = var.vm_count
   name                       = "AVDRegistration-${count.index}"
